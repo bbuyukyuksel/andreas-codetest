@@ -19,18 +19,13 @@ type Customer struct {
 	Email      string `csv:"email"    json:"email"`
 	Text       string `csv:"text"     json:"text"`
 	Schedule   string `csv:"schedule" json:"schedule"`
+	Paid	   bool   `csv::"-"       json:"paid"`
 }
 
 type ReminderRequest struct {
 	Uri string
 	Payload string
 	Sleeptime int
-}
-
-type ReminderResponse struct {
-	Email      string `json:"email"`
-	Text       string `json:"text"`
-	Paid       bool   `json:"paid"`
 }
 
 func GetCSV (csv_file_path string) []*Customer {
@@ -79,7 +74,7 @@ func PostRequest(request *ReminderRequest, responses map[string]bool, c chan boo
 	fmt.Printf("Reponse Status Code: %d, Body : %s", resp.StatusCode, body)
 
 	// Unmarshall response
-	var response ReminderResponse
+	var response Customer
 	json.Unmarshal([]byte(body), &response)
 	
 	c <- true
@@ -96,7 +91,6 @@ func main() {
 	requests := []*ReminderRequest {}
 	var responses = make(map[string]bool)
 	var lock = sync.RWMutex{} // for protecting map object concurrent to read/write
-
 
 	for _, customer := range customers {
 		schedule := customer.Schedule
@@ -117,7 +111,6 @@ func main() {
 			requests = append(requests, &ReminderRequest{Uri:"http://127.0.0.1:9090/messages", Payload:string(data), Sleeptime: sleep_time})
 		}
 	}
-
 
 	channel := make(chan bool)
 
